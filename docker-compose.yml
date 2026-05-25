@@ -1,0 +1,34 @@
+services:
+  wa-service:
+    build:
+      context: /www/wwwroot/wa-service
+    container_name: wa-service
+    ports:
+      - "21465:21465"
+    volumes:
+      - /www/wwwroot/wa-service/tokens:/app/tokens
+    environment:
+      - SECRET_KEY=${WPP_SECRET:-servisWppKey2025}
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile-backend
+    container_name: servis-panel-app
+    ports:
+      - "3002:3001"
+    volumes:
+      - ./data:/app/data
+      - ./public:/app/public
+      - ./locales:/app/locales
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - PANEL_PASSWORD=${PANEL_PASSWORD:-servis2025}
+      - WPP_URL=http://wa-service:21465
+      - WPP_SECRET=${WPP_SECRET:-servisWppKey2025}
+      - TAKIP_URL=https://kabilisim.com.tr/servis-takip
+    depends_on:
+      - wa-service
+    restart: unless-stopped

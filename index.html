@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Servis Panel</title>
+<style>
+:root {
+  --bg:#0f1117; --bg2:#161b26; --bg3:#1e2535; --bg4:#242d3f;
+  --border:#2a3347; --border2:#3a4570;
+  --text:#e8eaf0; --text2:#c0c8d8; --text3:#6b7280; --text4:#4a5470;
+  --accent:#4f7cff; --accent2:#3d62cc;
+  --green:#22c55e; --red:#ef4444; --amber:#f59e0b; --teal:#14b8a6;
+  --radius:8px; --sidebar-w:220px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:transform .3s;z-index:100}
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
+.sidebar-logo{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:var(--accent)}
+.sidebar-logo span{font-size:22px}
+.nav{flex:1;padding:8px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13.5px;font-weight:500;transition:all .15s;margin-bottom:2px;user-select:none}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(79,124,255,.15);color:var(--accent)}
+.nav-item .icon{font-size:16px;width:20px;text-align:center}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border)}
+#wa-status-dot{font-size:11px;color:var(--text3);margin-bottom:6px;cursor:pointer;padding:4px 6px;border-radius:4px}
+#wa-status-dot:hover{background:var(--bg3)}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.topbar-menu-btn{display:none;background:none;border:none;color:var(--text);cursor:pointer;font-size:20px;padding:4px}
+.topbar-title{font-size:16px;font-weight:700;flex:1}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── Overlay ── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
+.sidebar-overlay.show{display:block}
+
+/* ── Cards & Stats ── */
+.stats-grid{display:grid;gap:12px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.stat-value{font-size:24px;font-weight:700}
+.stat-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:16px}
+.card-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:600}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* ── Tables ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 12px;text-align:left;font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid var(--border)}
+tr:hover td{background:var(--bg3)}
+.empty{text-align:center;padding:32px;color:var(--text3)}
+.empty-icon{font-size:32px;margin-bottom:8px}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg3);color:var(--text)}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}.btn-danger:hover{background:rgba(239,68,68,.25)}
+.btn-success{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--bg2);padding:4px;border-radius:10px;border:1px solid var(--border);overflow-x:auto;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text3);transition:all .15s;white-space:nowrap}
+.tab.active{background:var(--accent);color:#fff}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.badge-gray{background:rgba(100,116,139,.15);color:#94a3b8}
+.badge-blue{background:rgba(79,124,255,.15);color:#4f7cff}
+.badge-amber{background:rgba(245,158,11,.15);color:#f59e0b}
+.badge-green{background:rgba(34,197,94,.15);color:#22c55e}
+.badge-red{background:rgba(239,68,68,.15);color:#ef4444}
+
+/* ── Forms ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+label{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:9px 12px;font-size:13px;width:100%;outline:none;transition:border-color .15s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{min-height:80px;resize:vertical}
+input::placeholder,textarea::placeholder{color:var(--text4)}
+.checkbox-row{display:flex;align-items:center;gap:8px}
+.checkbox-row input[type=checkbox]{width:16px;height:16px;cursor:pointer}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-size:16px;font-weight:700}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-shrink:0}
+
+/* ── Settings Modal ── */
+.settings-layout{display:grid;grid-template-columns:180px 1fr;gap:0;height:100%}
+.settings-nav{border-right:1px solid var(--border);padding:8px}
+.settings-nav-item{padding:9px 12px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;margin-bottom:2px}
+.settings-nav-item:hover{background:var(--bg3)}
+.settings-nav-item.active{background:rgba(79,124,255,.15);color:var(--accent);font-weight:600}
+.settings-panel{padding:20px;overflow-y:auto}
+.settings-section{display:none}
+.settings-section.active{display:block}
+.settings-section h3{font-size:14px;font-weight:700;margin-bottom:16px;color:var(--text);padding-bottom:8px;border-bottom:1px solid var(--border)}
+
+/* ── Toast ── */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;max-width:320px;animation:slideIn .3s ease}
+.toast.success{border-color:rgba(34,197,94,.4);color:var(--green)}
+.toast.error{border-color:rgba(239,68,68,.4);color:var(--red)}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Login ── */
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9998}
+.login-box{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:40px;width:100%;max-width:360px;text-align:center}
+.login-logo{font-size:44px;margin-bottom:12px}
+.login-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text3);margin-bottom:28px}
+.login-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);padding:10px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;display:none}
+
+/* ── Spinner ── */
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;gap:12px;color:var(--text3)}
+.spinner{width:22px;height:22px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Action bar ── */
+.action-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.search-input{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:8px 12px;font-size:13px;outline:none;transition:border-color .15s;min-width:200px}
+.search-input:focus{border-color:var(--accent)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .topbar-menu-btn{display:flex}
+  .main{width:100%}
+  .dash-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .form-group.full{grid-column:1}
+  .settings-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .settings-nav{border-right:none;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;gap:4px;padding:8px}
+  .settings-nav-item{white-space:nowrap}
+  .modal{margin:0;max-height:100vh;border-radius:0;max-width:100%}
+  .modal-overlay{padding:0;align-items:flex-end}
+  .content{padding:12px}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+  .action-bar{flex-direction:column;align-items:stretch}
+  .search-input{min-width:unset}
+}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen" class="login-screen" style="display:none">
+  <div class="login-box">
+    <div class="login-logo">⚡</div>
+    <div class="login-title" id="login-firma">Servis Panel</div>
+    <div class="login-sub">Devam etmek için şifrenizi girin</div>
+    <div class="login-error" id="login-error"></div>
+    <div class="form-group" style="text-align:left;margin-bottom:14px">
+      <label>Şifre</label>
+      <input type="password" id="login-sifre" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:11px" onclick="doLogin()" id="login-btn">Giriş Yap</button>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo"><span>⚡</span><span id="sidebar-firma">Servis Panel</span></div>
+  </div>
+  <nav class="nav" id="nav">
+    <div class="nav-item active" onclick="navigate('dashboard')"><span class="icon">📊</span><span id="mn-dashboard">Dashboard</span></div>
+    <div class="nav-item" onclick="navigate('imei')"><span class="icon">🔍</span><span id="mn-imei">IMEI Sorgula</span></div>
+    <div class="nav-item" onclick="navigate('servis')"><span class="icon">🔧</span><span id="mn-servis">Servis Takip</span></div>
+    <div class="nav-item" onclick="navigate('takip')"><span class="icon">👤</span><span id="mn-takip">Müşteri Takip</span></div>
+    <div class="nav-item" onclick="navigate('cihazlar')"><span class="icon">📱</span><span id="mn-cihazlar">Cihaz / Stok</span></div>
+    <div class="nav-item" onclick="navigate('musteriler')"><span class="icon">👥</span><span id="mn-musteriler">Müşteriler</span></div>
+    <div class="nav-item" onclick="navigate('satislar')"><span class="icon">💰</span><span id="mn-satislar">Satışlar</span></div>
+    <div class="nav-item" onclick="showAyarlar()"><span class="icon">⚙️</span><span id="mn-ayarlar">Ayarlar</span></div>
+  </nav>
+  <div class="sidebar-footer">
+    <div id="wa-status-dot" onclick="showWAQR()">📱 WA: kontrol ediliyor...</div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;font-size:12px;margin-top:4px" onclick="doLogout()">🚪 Çıkış Yap</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <button class="topbar-menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div id="topbar-actions"></div>
+  </div>
+  <div class="content" id="content">
+    <div class="loading"><div class="spinner"></div> Yükleniyor...</div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div class="toast-container" id="toasts"></div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
+
+<script>
+const API = '/servis-panel/api';
+let SESSION_TOKEN = sessionStorage.getItem('servis_token') || '';
+let currentPage = 'dashboard';
+let L = {}; // locale strings
+let ayarlarCache = {};
+
+// ── Locale ────────────────────────────────────────────────────────────────────
+async function loadLocale() {
+  try {
+    L = await apiFetch('/ayarlar/dil/aktif');
+    // Menü güncelle
+    const mn = L.menu || {};
+    document.getElementById('mn-dashboard').textContent  = mn.dashboard  || 'Dashboard';
+    document.getElementById('mn-imei').textContent       = mn.imei       || 'IMEI Sorgula';
+    document.getElementById('mn-servis').textContent     = mn.servis     || 'Servis Takip';
+    document.getElementById('mn-takip').textContent      = mn.musteritakip || 'Müşteri Takip';
+    document.getElementById('mn-cihazlar').textContent   = mn.cihazlar   || 'Cihaz / Stok';
+    document.getElementById('mn-musteriler').textContent = mn.musteriler || 'Müşteriler';
+    document.getElementById('mn-satislar').textContent   = mn.satislar   || 'Satışlar';
+    document.getElementById('mn-ayarlar').textContent    = mn.ayarlar    || 'Ayarlar';
+  } catch(e) { L = {}; }
+}
+
+function t(section, key, fallback='') {
+  return (L[section] && L[section][key]) || fallback;
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function apiFetch(path, options = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json', 'x-session-token': SESSION_TOKEN },
+    ...options
+  });
+  if (res.status === 401) { SESSION_TOKEN=''; sessionStorage.removeItem('servis_token'); showLogin(); throw new Error('Oturum sona erdi'); }
+  if (!res.ok) { const e = await res.json().catch(()=>({hata:'Sunucu hatası'})); throw new Error(e.hata||'İstek başarısız'); }
+  return res.json();
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(msg, type='success', dur=4000) {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), dur);
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function showModal(html) {
+  const c = document.getElementById('modal-container');
+  c.innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">${html}</div>`;
+}
+function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('sidebar-overlay');
+  s.classList.toggle('open');
+  o.classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fiyat(n) { return Number(n||0).toLocaleString('tr-TR') + ' ₺'; }
+function tarih(s) { if(!s) return '—'; return new Date(s).toLocaleDateString('tr-TR'); }
+
+const durumBadge = {
+  beklemede:        '<span class="badge badge-gray">⏳ Beklemede</span>',
+  incelemede:       '<span class="badge badge-blue">🔍 İncelemede</span>',
+  tamir_asamasinda: '<span class="badge badge-amber">🔧 Tamir Aşamasında</span>',
+  tamamlandi:       '<span class="badge badge-green">✅ Tamamlandı</span>',
+  iptal:            '<span class="badge badge-red">❌ İptal</span>',
+};
+const tipIcon = { telefon:'📱', tablet:'📟', bilgisayar:'💻', diger:'📦' };
+
+// ── Navigate ──────────────────────────────────────────────────────────────────
+const pages = {};
+function navigate(page) {
+  currentPage = page;
+  closeSidebar();
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navMap = { dashboard:'dashboard', imei:'imei', servis:'servis', takip:'takip', cihazlar:'cihaz', musteriler:'müşteri', satislar:'satış' };
+  const kw = navMap[page] || page;
+  document.querySelectorAll('.nav-item').forEach(el => { if(el.textContent.trim().toLowerCase().includes(kw)) el.classList.add('active'); });
+  if (pages[page]) pages[page]();
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function showLogin() {
+  document.getElementById('sidebar').style.display = 'none';
+  document.querySelector('.main').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  setTimeout(() => document.getElementById('login-sifre')?.focus(), 100);
+}
+function showApp() {
+  document.getElementById('sidebar').style.display = 'flex';
+  document.querySelector('.main').style.display = 'flex';
+  document.getElementById('login-screen').style.display = 'none';
+}
+async function doLogin() {
+  const sifre = document.getElementById('login-sifre').value;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+  if (!sifre) return;
+  btn.disabled = true; btn.textContent = 'Giriş yapılıyor...';
+  errEl.style.display = 'none';
+  try {
+    const res = await fetch(API + '/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({sifre}) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.hata || 'Hatalı şifre');
+    SESSION_TOKEN = data.token;
+    sessionStorage.setItem('servis_token', SESSION_TOKEN);
+    document.getElementById('login-sifre').value = '';
+    showApp();
+    await loadLocale();
+    await loadAyarlarCache();
+    pageDashboard();
+    checkWAStatus();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+  finally { btn.disabled = false; btn.textContent = 'Giriş Yap'; }
+}
+async function doLogout() {
+  await fetch(API + '/auth/logout', { method:'POST', headers:{'x-session-token':SESSION_TOKEN} }).catch(()=>{});
+  SESSION_TOKEN = ''; sessionStorage.removeItem('servis_token'); showLogin();
+}
+
+// ── Ayarlar Cache ─────────────────────────────────────────────────────────────
+async function loadAyarlarCache() {
+  try {
+    ayarlarCache = await apiFetch('/ayarlar');
+    const firma = ayarlarCache.firma_adi || 'Servis Panel';
+    document.getElementById('sidebar-firma').textContent = firma;
+    document.getElementById('login-firma').textContent = firma;
+    document.title = firma + ' — Panel';
+  } catch(e) {}
+}
+
+// ── WA Status ─────────────────────────────────────────────────────────────────
+async function checkWAStatus() {
+  try {
+    const s = await apiFetch('/ayarlar/wa/durum');
+    const el = document.getElementById('wa-status-dot');
+    if (!el) return;
+    const ok = s.status === 'CONNECTED' || s.status === 'isLogged' || s.ready === true;
+    el.textContent = ok ? '📱 WA: Bağlı ✓' : '📱 WA: Bağlı Değil';
+    el.style.color = ok ? 'var(--green)' : 'var(--amber)';
+    el.title = ok ? 'Bağlı' : 'Bağlanmak için tıkla';
+  } catch(e) {
+    const el = document.getElementById('wa-status-dot');
+    if (el) { el.textContent = '📱 WA: Erişilemiyor'; el.style.color = 'var(--red)'; }
+  }
+}
+async function showWAQR() {
+  try {
+    const data = await apiFetch('/ayarlar/wa/qr');
+    const qr = data.qrcode || data.base64Qr || data.qr || '';
+    showModal(`<div class="modal" style="max-width:360px">
+      <div class="modal-header"><div class="modal-title">WhatsApp Bağlantısı</div><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+      <div class="modal-body" style="text-align:center">
+        ${qr ? `<img src="${qr.startsWith('data:')?qr:'data:image/png;base64,'+qr}" style="width:240px;height:240px;border-radius:8px;border:4px solid #fff">
+        <p style="margin-top:12px;font-size:13px;color:var(--text3)">WhatsApp → Bağlı Cihazlar → QR Kodu Okut</p>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="showWAQR()">🔄 Yenile</button>`
+        : '<p style="color:var(--text3)">QR kodu alınamadı. Sunucu loglarını kontrol edin.</p>'}
+      </div>
+    </div>`);
+    setTimeout(checkWAStatus, 20000);
+  } catch(e) { toast('QR alınamadı: ' + e.message, 'error'); }
+}
+
+// ── Ayarlar Modal ─────────────────────────────────────────────────────────────
+async function showAyarlar() {
+  const ayarlar = await apiFetch('/ayarlar');
+  const diller  = await apiFetch('/ayarlar/dil/listele').catch(() => ['tr','en']);
+
+  showModal(`<div class="modal" style="max-width:720px;height:80vh">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Ayarlar</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;display:flex;height:100%">
+      <div class="settings-layout" style="width:100%;display:grid;grid-template-columns:180px 1fr">
+        <div class="settings-nav">
+          <div class="settings-nav-item active" onclick="switchSettingsTab('genel',this)">🏢 Genel Ayarlar</div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('eposta',this)">📧 E-posta</div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('bildirim',this)">🔔 Bildirimler</div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('dil',this)">🌐 Dil</div>
+          <div class="settings-nav-item" onclick="switchSettingsTab('wa',this)">📱 WhatsApp</div>
+        </div>
+        <div style="overflow-y:auto;padding:20px">
+          <!-- Genel -->
+          <div id="st-genel" class="settings-section active">
+            <h3>🏢 Genel Ayarlar</h3>
+            <div class="form-grid">
+              <div class="form-group full"><label>Firma Adı</label><input id="ay-firma_adi" value="${ayarlar.firma_adi||''}"></div>
+              <div class="form-group full"><label>Firma Adresi</label><input id="ay-firma_adres" value="${ayarlar.firma_adres||''}"></div>
+              <div class="form-group"><label>Firma Telefonu</label><input id="ay-firma_telefon" value="${ayarlar.firma_telefon||''}"></div>
+              <div class="form-group"><label>Firma E-postası</label><input id="ay-firma_email" value="${ayarlar.firma_email||''}"></div>
+              <div class="form-group full"><label>Google My Business Linki</label><input id="ay-firma_gmb_link" value="${ayarlar.firma_gmb_link||''}" placeholder="https://g.page/r/..."></div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px" onclick="kaydetAyarlar(['firma_adi','firma_adres','firma_telefon','firma_email','firma_gmb_link'])">Kaydet</button>
+          </div>
+
+          <!-- E-posta -->
+          <div id="st-eposta" class="settings-section">
+            <h3>📧 E-posta Ayarları</h3>
+            <div class="form-grid">
+              <div class="form-group"><label>SMTP Host</label><input id="ay-smtp_host" value="${ayarlar.smtp_host||''}" placeholder="smtp.gmail.com"></div>
+              <div class="form-group"><label>SMTP Port</label><input id="ay-smtp_port" value="${ayarlar.smtp_port||'587'}"></div>
+              <div class="form-group"><label>Kullanıcı Adı</label><input id="ay-smtp_user" value="${ayarlar.smtp_user||''}"></div>
+              <div class="form-group"><label>Şifre</label><input id="ay-smtp_pass" type="password" value="" placeholder="${ayarlar.smtp_pass?'••••••••':'Girilmemiş'}"></div>
+              <div class="form-group"><label>Gönderici Adı</label><input id="ay-smtp_from" value="${ayarlar.smtp_from||''}"></div>
+              <div class="form-group" style="justify-content:flex-end;padding-top:20px">
+                <label class="checkbox-row"><input type="checkbox" id="ay-smtp_ssl" ${ayarlar.smtp_ssl==='1'?'checked':''}> SSL/TLS Kullan</label>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+              <button class="btn btn-primary" onclick="kaydetAyarlar(['smtp_host','smtp_port','smtp_user','smtp_pass','smtp_from','smtp_ssl'])">Kaydet</button>
+              <div style="display:flex;gap:6px;flex:1">
+                <input id="test-mail-hedef" placeholder="test@example.com" style="flex:1" value="${ayarlar.firma_email||''}">
+                <button class="btn btn-ghost" onclick="testMailGonder()">Test Gönder</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bildirim -->
+          <div id="st-bildirim" class="settings-section">
+            <h3>🔔 Bildirim Ayarları</h3>
+            <div class="form-group" style="margin-bottom:16px">
+              <label>Bildirim Kanalı</label>
+              <select id="ay-bildirim_kanal">
+                <option value="wa" ${ayarlar.bildirim_kanal==='wa'?'selected':''}>📱 WhatsApp</option>
+                <option value="mail" ${ayarlar.bildirim_kanal==='mail'?'selected':''}>📧 E-posta</option>
+                <option value="her" ${ayarlar.bildirim_kanal==='her'?'selected':''}>📱 + 📧 Her İkisi</option>
+                <option value="hic" ${ayarlar.bildirim_kanal==='hic'?'selected':''}>🔕 Kapalı</option>
+              </select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <label class="checkbox-row"><input type="checkbox" id="ay-bildirim_alindi" ${ayarlar.bildirim_alindi!=='0'?'checked':''}> Servis alındığında bildirim gönder</label>
+              <label class="checkbox-row"><input type="checkbox" id="ay-bildirim_tamamlandi" ${ayarlar.bildirim_tamamlandi!=='0'?'checked':''}> Servis tamamlandığında bildirim gönder</label>
+              <label class="checkbox-row"><input type="checkbox" id="ay-bildirim_iptal" ${ayarlar.bildirim_iptal!=='0'?'checked':''}> Servis iptal edildiğinde bildirim gönder</label>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px" onclick="kaydetAyarlar(['bildirim_kanal','bildirim_alindi','bildirim_tamamlandi','bildirim_iptal'])">Kaydet</button>
+          </div>
+
+          <!-- Dil -->
+          <div id="st-dil" class="settings-section">
+            <h3>🌐 Dil Ayarları</h3>
+            <div class="form-group">
+              <label>Aktif Dil</label>
+              <select id="ay-dil">
+                ${diller.map(d => `<option value="${d}" ${ayarlar.dil===d?'selected':''}>${d==='tr'?'🇹🇷 Türkçe':'🇬🇧 English'}</option>`).join('')}
+              </select>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px" onclick="kaydetDil()">Kaydet & Uygula</button>
+          </div>
+
+          <!-- WhatsApp -->
+          <div id="st-wa" class="settings-section">
+            <h3>📱 WhatsApp Bağlantısı</h3>
+            <div id="wa-ayar-durum" style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:8px;font-size:13px">Kontrol ediliyor...</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-primary" onclick="showWAQR();closeModal()">📷 QR Kod ile Bağlan</button>
+              <button class="btn btn-ghost" onclick="refreshWADurum()">🔄 Durumu Yenile</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`);
+
+  // WA durumunu yükle
+  refreshWADurum();
+}
+
+function switchSettingsTab(id, el) {
+  document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.settings-nav-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('st-' + id)?.classList.add('active');
+  el.classList.add('active');
+}
+
+async function kaydetAyarlar(keys) {
+  const ayarlar = {};
+  for (const k of keys) {
+    const el = document.getElementById('ay-' + k);
+    if (!el) continue;
+    ayarlar[k] = el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value;
+  }
+  try {
+    await apiFetch('/ayarlar', { method:'POST', body:JSON.stringify({ ayarlar }) });
+    toast('Ayarlar kaydedildi ✓');
+    await loadAyarlarCache();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function kaydetDil() {
+  const dil = document.getElementById('ay-dil').value;
+  await apiFetch('/ayarlar', { method:'POST', body:JSON.stringify({ ayarlar:{ dil } }) });
+  await loadLocale();
+  toast('Dil değiştirildi, sayfa yenileniyor...');
+  setTimeout(() => location.reload(), 1000);
+}
+
+async function testMailGonder() {
+  const hedef = document.getElementById('test-mail-hedef').value;
+  if (!hedef) return toast('Mail adresi girin', 'error');
+  try {
+    await apiFetch('/ayarlar/email/test', { method:'POST', body:JSON.stringify({ hedef }) });
+    toast('Test maili gönderildi ✓');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function refreshWADurum() {
+  const el = document.getElementById('wa-ayar-durum');
+  if (!el) return;
+  try {
+    const s = await apiFetch('/ayarlar/wa/durum');
+    const ok = s.status === 'CONNECTED' || s.ready === true;
+    el.innerHTML = ok
+      ? '<span style="color:var(--green)">✅ WhatsApp bağlı ve aktif</span>'
+      : `<span style="color:var(--amber)">⚠️ Bağlı değil — Durum: ${s.status || 'bilinmiyor'}</span>`;
+    checkWAStatus();
+  } catch(e) {
+    el.innerHTML = '<span style="color:var(--red)">❌ WA servisi erişilemiyor</span>';
+  }
+}
+
+// ── Manuel WA gönder ──────────────────────────────────────────────────────────
+async function waSendManual(servisId, tip) {
+  try {
+    await apiFetch(`/servis/wa/${servisId}`, { method:'POST', body:JSON.stringify({ tip }) });
+    toast('WA mesajı gönderildi ✓'); loadServis();
+  } catch(e) { toast('WA gönderilemedi: ' + e.message, 'error'); }
+}
+
+// ── PDF indir ─────────────────────────────────────────────────────────────────
+function pdfIndir(servisId) {
+  window.open(API + `/servis/pdf/${servisId}?token=${SESSION_TOKEN}`, '_blank');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════════
+pages.dashboard = async function pageDashboard() {
+  document.getElementById('topbar-title').textContent = t('menu','dashboard','Dashboard');
+  document.getElementById('topbar-actions').innerHTML = '';
+  const el = document.getElementById('content');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> Yükleniyor...</div>';
+  const d = await apiFetch('/dashboard');
+  el.innerHTML = `
+    <div style="margin-bottom:8px;font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Bu Ay</div>
+    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+      <div class="stat-card"><div class="stat-label">Müşteri</div><div class="stat-value" style="color:var(--accent)">${d.toplam_musteri}</div><div class="stat-sub">Kayıtlı</div></div>
+      <div class="stat-card"><div class="stat-label">Açık Servis</div><div class="stat-value" style="color:var(--amber)">${d.bekleyen_servis}</div><div class="stat-sub">${d.tamamlanan_servis_ay} tamamlandı</div></div>
+      <div class="stat-card"><div class="stat-label">🔧 Tamir Kârı</div><div class="stat-value" style="color:var(--green)">${fiyat(d.ay_tamir_kar)}</div><div class="stat-sub">Ciro: ${fiyat(d.ay_tamir_ciro)}</div></div>
+      <div class="stat-card"><div class="stat-label">📱 Satış Kârı</div><div class="stat-value" style="color:var(--green)">${fiyat(d.ay_satis_kar)}</div><div class="stat-sub">Ciro: ${fiyat(d.ay_satis_ciro)}</div></div>
+      <div class="stat-card" style="border-color:var(--accent)"><div class="stat-label">⭐ Toplam</div><div class="stat-value" style="color:${d.ay_toplam_kar>=0?'var(--green)':'var(--red)'}">${fiyat(d.ay_toplam_kar)}</div><div class="stat-sub">Bu ay kâr</div></div>
+    </div>
+    <div style="margin:16px 0 8px;font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Genel</div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+      <div class="stat-card"><div class="stat-label">Stok Cihaz</div><div class="stat-value" style="color:var(--teal)">${d.stok_cihaz}</div><div class="stat-sub">Değer: ${fiyat(d.stok_deger)}</div></div>
+      <div class="stat-card"><div class="stat-label">Tüm Tamir</div><div class="stat-value" style="color:var(--green)">${fiyat(d.genel_tamir_kar)}</div><div class="stat-sub">Net kâr</div></div>
+      <div class="stat-card"><div class="stat-label">Tüm Satış</div><div class="stat-value" style="color:var(--green)">${fiyat(d.genel_satis_kar)}</div><div class="stat-sub">Net kâr</div></div>
+      <div class="stat-card" style="border-color:var(--green)"><div class="stat-label">💰 Genel Toplam</div><div class="stat-value" style="color:${d.genel_toplam_kar>=0?'var(--green)':'var(--red)'}">${fiyat(d.genel_toplam_kar)}</div><div class="stat-sub">Tüm zamanlar</div></div>
+    </div>
+    <div class="dash-grid">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Son Servisler</div></div>
+        <div class="table-wrap"><table>
+          <tr><th>Müşteri</th><th>Cihaz</th><th>Tutar</th><th>Durum</th></tr>
+          ${d.son_servisler.length ? d.son_servisler.map(s => `<tr>
+            <td>${s.musteri_ad||'—'}</td>
+            <td>${tipIcon[s.cihaz_tipi||'telefon']||'📱'} ${s.marka||''} ${s.model||''}</td>
+            <td style="color:var(--green)">${s.toplam_ucret?fiyat(s.toplam_ucret):'—'}</td>
+            <td>${durumBadge[s.durum]||s.durum}</td>
+          </tr>`).join('') : '<tr><td colspan="4" class="empty">Kayıt yok</td></tr>'}
+        </table></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Son IMEI Sorguları</div><span style="font-size:12px;color:var(--text3)">Bugün: ${d.bugun_imei_sorgu}</span></div>
+        <div class="table-wrap"><table>
+          <tr><th>IMEI</th><th>Sonuç</th><th>Tarih</th></tr>
+          ${d.son_sorgular.length ? d.son_sorgular.map(s => `<tr>
+            <td style="font-family:monospace;font-size:12px">${s.sorgu}</td>
+            <td>${durumBadge[s.sonuc]||s.sonuc}</td>
+            <td style="font-size:12px;color:var(--text3)">${tarih(s.created_at)}</td>
+          </tr>`).join('') : '<tr><td colspan="3" class="empty">Sorgu yok</td></tr>'}
+        </table></div>
+      </div>
+    </div>`;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SERVİS
+// ═══════════════════════════════════════════════════════════════════════════════
+let servisFiltre = 'hepsi';
+let seciliServisler = new Set();
+
+pages.servis = async function pageServis() {
+  document.getElementById('topbar-title').textContent = t('menu','servis','Servis Takip');
+  document.getElementById('topbar-actions').innerHTML = `
+    <button class="btn btn-ghost btn-sm" onclick="topluPdfIndir()">📄 Toplu PDF</button>
+    <button class="btn btn-primary" onclick="yeniServisModal()">+ Yeni Servis</button>`;
+  document.getElementById('content').innerHTML = `
+    <div class="tabs">
+      <div class="tab active" onclick="filterServis('hepsi',this)">Tümü</div>
+      <div class="tab" onclick="filterServis('beklemede',this)">⏳ Beklemede</div>
+      <div class="tab" onclick="filterServis('incelemede',this)">🔍 İncelemede</div>
+      <div class="tab" onclick="filterServis('tamir_asamasinda',this)">🔧 Tamir</div>
+      <div class="tab" onclick="filterServis('tamamlandi',this)">✅ Tamamlandı</div>
+      <div class="tab" onclick="filterServis('iptal',this)">❌ İptal</div>
+    </div>
+    <div class="card"><div class="table-wrap" id="servis-tablo"></div></div>`;
+  loadServis();
+};
+
+function filterServis(durum, el) {
+  servisFiltre = durum;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  loadServis();
+}
+
+async function loadServis() {
+  const q = servisFiltre !== 'hepsi' ? `?durum=${servisFiltre}` : '';
+  const rows = await apiFetch('/servis' + q);
+  const wrap = document.getElementById('servis-tablo');
+  if (!wrap) return;
+  seciliServisler.clear();
+  wrap.innerHTML = `<table>
+    <tr>
+      <th><input type="checkbox" onchange="toggleTumSecim(this)"></th>
+      <th>Müşteri</th><th>Tip</th><th>Cihaz</th><th>Arıza</th>
+      <th>Teknisyen</th><th>Tutar</th><th>Durum</th><th>WA</th><th>İşlem</th>
+    </tr>
+    ${rows.length ? rows.map(s => `<tr>
+      <td><input type="checkbox" value="${s.id}" onchange="toggleSecim('${s.id}',this)"></td>
+      <td>${s.musteri_adi||'—'}</td>
+      <td style="text-align:center;font-size:16px">${tipIcon[s.cihaz_tipi||'telefon']||'📱'}</td>
+      <td style="white-space:nowrap">${s.marka||''} ${s.model||''}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.ariza_tanimi}">${s.ariza_tanimi}</td>
+      <td>${s.teknisyen||'—'}</td>
+      <td style="white-space:nowrap">${s.durum==='iptal'?(s.iade_tutari>0?'<span style="color:var(--amber)">İade: '+fiyat(s.iade_tutari)+'</span>':'<span style="color:var(--text3)">0 ₺</span>'):fiyat(s.toplam_ucret)}</td>
+      <td>${durumBadge[s.durum]||s.durum}</td>
+      <td style="text-align:center;font-size:13px">
+        ${s.wa_alindi_at?`<span title="Alındı: ${tarih(s.wa_alindi_at)}">✅</span>`:'<span style="color:var(--text3)">—</span>'}
+        ${s.wa_tamamlandi_at?`<span title="Tamamlandı: ${tarih(s.wa_tamamlandi_at)}">✅</span>`:''}
+      </td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="servisDuzenle('${s.id}')">Düzenle</button>
+        <button class="btn btn-ghost btn-sm" onclick="pdfIndir('${s.id}')" title="PDF">📄</button>
+        ${s.musteri_id?`<button class="btn btn-ghost btn-sm" style="color:${s.wa_alindi_at?'var(--text3)':'#25d366'}" onclick="waSendManual('${s.id}','alindi')" title="${s.wa_alindi_at?'Tekrar WA Gönder':'WA Gönder'}">📲</button>`:''}
+      </td>
+    </tr>`).join('') : '<tr><td colspan="10" class="empty"><div class="empty-icon">🔧</div>Servis kaydı yok</td></tr>'}
+  </table>`;
+}
+
+function toggleTumSecim(cb) {
+  document.querySelectorAll('#servis-tablo input[type=checkbox][value]').forEach(c => {
+    c.checked = cb.checked;
+    if (cb.checked) seciliServisler.add(c.value); else seciliServisler.clear();
+  });
+}
+function toggleSecim(id, cb) { cb.checked ? seciliServisler.add(id) : seciliServisler.delete(id); }
+
+async function topluPdfIndir() {
+  const ids = [...seciliServisler];
+  if (ids.length === 0) { toast('Servis seçin veya tümü indirilecek', 'error'); }
+  const res = await fetch(API + '/servis/pdf/toplu', {
+    method:'POST', headers:{'Content-Type':'application/json','x-session-token':SESSION_TOKEN},
+    body: JSON.stringify({ ids: ids.length ? ids : undefined, durum: servisFiltre !== 'hepsi' ? servisFiltre : undefined, baslik:'Servis Listesi' })
+  });
+  if (!res.ok) return toast('PDF oluşturulamadı', 'error');
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'servis-listesi.pdf'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function yeniServisModal() {
+  const musteriler = await apiFetch('/musteriler');
+  showModal(`<div class="modal">
+    <div class="modal-header"><div class="modal-title">Yeni Servis Kaydı</div><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Müşteri</label>
+          <select id="s-musteri"><option value="">Seçin...</option>${musteriler.map(m=>`<option value="${m.id}">${m.ad} ${m.soyad||''} - ${m.telefon||''}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label>Cihaz Tipi</label>
+          <select id="s-cihaz-tipi">
+            <option value="telefon">📱 Telefon</option>
+            <option value="tablet">📟 Tablet</option>
+            <option value="bilgisayar">💻 Bilgisayar</option>
+            <option value="diger">📦 Diğer</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Marka</label><input id="s-marka" placeholder="Apple, Samsung..."></div>
+        <div class="form-group"><label>Model</label><input id="s-model" placeholder="iPhone 15, S24..."></div>
+        <div class="form-group full"><label>Arıza Tanımı *</label><textarea id="s-ariza" placeholder="Müşterinin bildirdiği arıza..."></textarea></div>
+        <div class="form-group"><label>Teknisyen</label><input id="s-teknisyen" placeholder="Ad"></div>
+        <div class="form-group"><label>Tahmini Teslim</label><input id="s-teslim" type="date"></div>
+        <div class="form-group"><label>Parça Maliyeti (₺)</label><input id="s-parca" type="number" placeholder="0"></div>
+        <div class="form-group"><label>İşçilik (₺)</label><input id="s-iscilik" type="number" placeholder="0"></div>
+        <div class="form-group full"><label>Notlar</label><textarea id="s-not" style="min-height:60px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" onclick="kaydetServis()">Kaydet</button>
+    </div>
+  </div>`);
+}
+
+async function kaydetServis() {
+  const musteriId = document.getElementById('s-musteri').value;
+  const body = {
+    musteri_id: musteriId,
+    cihaz_tipi: document.getElementById('s-cihaz-tipi').value,
+    marka: document.getElementById('s-marka').value,
+    model: document.getElementById('s-model').value,
+    ariza_tanimi: document.getElementById('s-ariza').value,
+    teknisyen: document.getElementById('s-teknisyen').value,
+    teslim_tarihi: document.getElementById('s-teslim').value,
+    parca_maliyeti: document.getElementById('s-parca').value,
+    iscilik_maliyeti: document.getElementById('s-iscilik').value,
+    notlar: document.getElementById('s-not').value
+  };
+  if (!body.ariza_tanimi) return toast('Arıza tanımı zorunlu', 'error');
+  try {
+    await apiFetch('/servis', { method:'POST', body:JSON.stringify(body) });
+    closeModal(); loadServis();
+    toast('Servis kaydı oluşturuldu' + (ayarlarCache.bildirim_kanal !== 'hic' ? ' — bildirim gönderiliyor...' : ''));
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function servisDuzenle(id) {
+  const s = await apiFetch(`/servis/${id}`);
+  showModal(`<div class="modal">
+    <div class="modal-header"><div class="modal-title">Servis Güncelle</div><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Arıza Tanımı</label><textarea id="se-ariza">${s.ariza_tanimi}</textarea></div>
+        <div class="form-group"><label>Cihaz Tipi</label>
+          <select id="se-cihaz-tipi">
+            <option value="telefon" ${(s.cihaz_tipi||'telefon')==='telefon'?'selected':''}>📱 Telefon</option>
+            <option value="tablet" ${s.cihaz_tipi==='tablet'?'selected':''}>📟 Tablet</option>
+            <option value="bilgisayar" ${s.cihaz_tipi==='bilgisayar'?'selected':''}>💻 Bilgisayar</option>
+            <option value="diger" ${s.cihaz_tipi==='diger'?'selected':''}>📦 Diğer</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Durum</label>
+          <select id="se-durum" onchange="document.getElementById('iade-grup').style.display=this.value==='iptal'?'':'none'">
+            <option value="beklemede" ${s.durum==='beklemede'?'selected':''}>Beklemede</option>
+            <option value="incelemede" ${s.durum==='incelemede'?'selected':''}>İncelemede</option>
+            <option value="tamir_asamasinda" ${s.durum==='tamir_asamasinda'?'selected':''}>Tamir Aşamasında</option>
+            <option value="tamamlandi" ${s.durum==='tamamlandi'?'selected':''}>Tamamlandı</option>
+            <option value="iptal" ${s.durum==='iptal'?'selected':''}>İptal</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Teknisyen</label><input id="se-teknisyen" value="${s.teknisyen||''}"></div>
+        <div class="form-group"><label>Parça Maliyeti (₺)</label><input id="se-parca" type="number" value="${s.parca_maliyeti||0}"></div>
+        <div class="form-group"><label>İşçilik (₺)</label><input id="se-iscilik" type="number" value="${s.iscilik_maliyeti||0}"></div>
+        <div class="form-group"><label>Teslim Tarihi</label><input id="se-teslim" type="date" value="${s.teslim_tarihi||''}"></div>
+        <div class="form-group full"><label>Notlar</label><textarea id="se-not">${s.notlar||''}</textarea></div>
+        <div class="form-group full" id="iade-grup" style="${s.durum==='iptal'?'':'display:none'}">
+          <label>İade Tutarı (₺) — 0 = "ücret alınmadı"</label>
+          <input id="se-iade" type="number" min="0" value="${s.iade_tutari||0}">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="silServis('${id}')">Sil</button>
+      <button class="btn btn-ghost btn-sm" onclick="pdfIndir('${id}')">📄 PDF</button>
+      <button class="btn btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" onclick="guncelleServis('${id}')">Güncelle</button>
+    </div>
+  </div>`);
+}
+
+async function guncelleServis(id) {
+  const durum = document.getElementById('se-durum').value;
+  const body = {
+    ariza_tanimi: document.getElementById('se-ariza').value,
+    durum,
+    cihaz_tipi: document.getElementById('se-cihaz-tipi')?.value || 'telefon',
+    teknisyen: document.getElementById('se-teknisyen').value,
+    parca_maliyeti: document.getElementById('se-parca').value,
+    iscilik_maliyeti: document.getElementById('se-iscilik').value,
+    iade_tutari: durum==='iptal' ? (document.getElementById('se-iade').value||0) : 0,
+    teslim_tarihi: document.getElementById('se-teslim').value,
+    notlar: document.getElementById('se-not').value
+  };
+  await apiFetch(`/servis/${id}`, { method:'PUT', body:JSON.stringify(body) });
+  closeModal(); loadServis();
+  toast(durum==='tamamlandi' ? 'Tamamlandı — bildirim gönderiliyor...' : 'Güncellendi');
+}
+
+async function silServis(id) {
+  if (!confirm('Silinsin mi?')) return;
+  await apiFetch(`/servis/${id}`, { method:'DELETE' });
+  toast('Silindi'); closeModal(); loadServis();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MÜŞTERİLER
+// ═══════════════════════════════════════════════════════════════════════════════
+pages.musteriler = async function pageMusteriler() {
+  document.getElementById('topbar-title').textContent = 'Müşteriler';
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-primary" onclick="yeniMusteriModal()">+ Yeni Müşteri</button>`;
+  document.getElementById('content').innerHTML = `
+    <div class="action-bar">
+      <input class="search-input" id="musteri-ara" placeholder="İsim, telefon ara..." oninput="loadMusteriler(this.value)">
+    </div>
+    <div class="card"><div class="table-wrap" id="musteri-tablo"></div></div>`;
+  loadMusteriler();
+};
+
+async function loadMusteriler(ara='') {
+  const q = ara ? `?ara=${encodeURIComponent(ara)}` : '';
+  const rows = await apiFetch('/musteriler' + q);
+  const wrap = document.getElementById('musteri-tablo');
+  if (!wrap) return;
+  wrap.innerHTML = `<table>
+    <tr><th>Ad Soyad</th><th>Telefon</th><th>E-posta</th><th>Adres</th><th></th></tr>
+    ${rows.length ? rows.map(m => `<tr>
+      <td>${m.ad} ${m.soyad||''}</td>
+      <td>${m.telefon||'—'}</td>
+      <td>${m.email||'—'}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${m.adres||'—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="musteriDuzenle('${m.id}')">Düzenle</button></td>
+    </tr>`).join('') : '<tr><td colspan="5" class="empty"><div class="empty-icon">👥</div>Müşteri bulunamadı</td></tr>'}
+  </table>`;
+}
+
+function musteriForm(m={}) {
+  return `
+    <div class="form-grid">
+      <div class="form-group"><label>Ad *</label><input id="m-ad" value="${m.ad||''}"></div>
+      <div class="form-group"><label>Soyad</label><input id="m-soyad" value="${m.soyad||''}"></div>
+      <div class="form-group"><label>Telefon</label><input id="m-telefon" value="${m.telefon||''}" type="tel"></div>
+      <div class="form-group"><label>E-posta</label><input id="m-email" value="${m.email||''}" type="email"></div>
+      <div class="form-group full"><label>Adres</label><input id="m-adres" value="${m.adres||''}"></div>
+      <div class="form-group full"><label>Notlar</label><textarea id="m-not">${m.notlar||''}</textarea></div>
+    </div>`;
+}
+function musteriBody() {
+  return { ad:document.getElementById('m-ad').value, soyad:document.getElementById('m-soyad').value, telefon:document.getElementById('m-telefon').value, email:document.getElementById('m-email').value, adres:document.getElementById('m-adres').value, notlar:document.getElementById('m-not').value };
+}
+
+function yeniMusteriModal() {
+  showModal(`<div class="modal">
+    <div class="modal-header"><div class="modal-title">Yeni Müşteri</div><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">${musteriForm()}</div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" onclick="kaydetMusteri()">Kaydet</button>
+    </div>
+  </div>`);
+}
+
+async function kaydetMusteri() {
+  const body = musteriBody();
+  if (!body.ad) return toast('Ad zorunlu', 'error');
+  try { await apiFetch('/musteriler', { method:'POST', body:JSON.stringify(body) }); toast('Kaydedildi'); closeModal(); loadMusteriler(); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+async function musteriDuzenle(id) {
+  const m = await apiFetch(`/musteriler/${id}`);
+  showModal(`<div class="modal">
+    <div class="modal-header"><div class="modal-title">${m.ad} ${m.soyad||''}</div><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">${musteriForm(m)}</div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="silMusteri('${id}')">Sil</button>
+      <button class="btn btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" onclick="guncelleMusteri('${id}')">Güncelle</button>
+    </div>
+  </div>`);
+}
+
+async function guncelleMusteri(id) {
+  try { await apiFetch(`/musteriler/${id}`, { method:'PUT', body:JSON.stringify(musteriBody()) }); toast('Güncellendi'); closeModal(); loadMusteriler(); }
+  catch(e) { toast(e.message,'error'); }
+}
+async function silMusteri(id) {
+  if (!confirm('Silinsin mi?')) return;
+  await apiFetch(`/musteriler/${id}`, { method:'DELETE' }); toast('Silindi'); closeModal(); loadMusteriler();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CİHAZLAR
+// ═══════════════════════════════════════════════════════════════════════════════
+let cihazFiltre = 'hepsi';
+pages.cihazlar = async function pageCihazlar() {
+  document.getElementById('topbar-title').textContent = 'Cihaz / Stok';
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-primary" onclick="yeniCihazModal()">+ Yeni Cihaz</button>`;
+  document.getElementById('content').innerHTML = `
+    <div class="tabs">
+      <div class="tab active" onclick="filterCihaz('hepsi',this)">Tümü</div>
+      <div class="tab" onclick="filterCihaz('stok',this)">📦 Stok</div>
+      <div class="tab" onclick="filterCihaz('serviste',this)">🔧 Serviste</div>
+      <div class="tab" onclick="filterCihaz('satildi',this)">✅ Satıldı</div>
+    </div>
+    <div class="card"><div class="table-wrap" id="cihaz-tablo"></div></div>`;
+  loadCihazlar();
+};
+
+function filterCihaz(d,el) { cihazFiltre=d; document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); loadCihazlar(); }
+
+async function loadCihazlar() {
+  const q = cihazFiltre!=='hepsi' ? `?durum=${cihazFiltre}` : '';
+  const rows = await apiFetch('/cihazlar'+q);
+  const wrap = document.getElementById('cihaz-tablo');
+  if (!wrap) return;
+  wrap.innerHTML = `<table>
+    <tr><th>Marka/Model</th><th>IMEI</th><th>Renk</th><th>Depolama</th><th>Alış</th><th>Satış</th><th>Durum</th><th>Müşteri</th><th></th></tr>
+    ${rows.length ? rows.map(c => `<tr>
+      <td><strong>${c.marka||''}</strong> ${c.model||''}</td>
+      <td style="font-family:monospace;font-size:12px">${c.imei||c.seri_no||'—'}</td>
+      <td>${c.renk||'—'}</td>
+      <td>${c.depolama||'—'}</td>
+      <td style="color:var(--text3)">${c.satin_alma_fiyat?fiyat(c.satin_alma_fiyat):'—'}</td>
+      <td style="color:var(--green)">${c.satis_fiyat?fiyat(c.satis_fiyat):'—'}</td>
+      <td>${durumBadge[c.durum]||c.durum}</td>
+      <td>${c.musteri_adi||'—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="cihazDuzenle('${c.id}')">Düzenle</button></td>
+    </tr>`).join('') : '<tr><td colspan="9" class="empty"><div class="empty-icon">📱</div>Cihaz yok</td></tr>'}
+  </table>`;
+}
+
+async function yeniCihazModal() {
+  const musteriler = await apiFetch('/musteriler');
+  showModal(`<div class="modal">
+    <div class="modal-header"><div class="modal-title">Yeni Cihaz</div><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Müşteri</label>
+          <select id="c-musteri"><option value="">Seçin...</option>${musteriler.map(m=>`<option value="${m.id}">${m.ad} ${m.soyad||''}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label>Durum</label>
+          <select id="c-durum"><option value="stok">Stok</option><option value="serviste">Serviste</option><option value="satildi">Satıldı</option></select>
+        </div>
+        <div class="form-group"><label>Marka</label><input id="c-marka" placeholder="Apple, Samsung..."></div>
+        <div class="form-group"><label>Model</label><input id="c-model" placeholder="iPhone 15..."></div>
+        <div class="form-group"><label>IMEI</label><input id="c-imei" placeholder="15 haneli"></div>
+        <div class="form-group"><label>Seri No</label><input id="c-seri"></div>
+        <div class="form-group"><label>Renk</label><input id="c-renk"></div>
+        <div class="form-group"><label>Depolama</label><input id="c-depolama" placeholder="128GB"></div>
+        <div class="form-group"><label>Alış Fiyatı (₺)</label><input id="c-alis" type="number" placeholder="0"></div>
+        <div class="form-group"><label>Satış Fiyatı (₺)</label><input id="c-satis" type="number" placeholder="0"></div>
+        <div class="form-group full"><label>Notlar</label><textarea id="c-not" style="min-height:60px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" onclick="kaydetCihaz()">Kaydet</button>
+    </div>
+  </div>`);
+}
+
+function cihazBody() {
+  return { musteri_id:document.getElementById('c-musteri')?.value, marka:document.getElementById('c-marka')?.value, model:document.getElementById('c-model')?.value, imei:document.getElementById('c-imei')?.value, seri_no:document.getElementById('c-seri')?.value, renk:document.getElementById('c-renk')?.value, depolama:document.getElementById('c-depolama')?.value, satin_alma_fiyat:document.getElementById('c-alis')?.value, satis_fiyat:document.getElementById('c-satis')?.value, durum:document.getElementById('c-durum')?.value||'stok', notlar:document.getElementById('c-not')?.value };
+}
+
+async function kaydetCihaz() {
+  try { await apiFetch('/cihazlar',{method:'POST',body:JSON.stringify(cihazBody())}); toast('Kaydedildi'); closeModal(); loadCihazlar(); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+async function cihazDuzenle(id) {
+  const rows = await apiFetch('/cihazlar');
+  const c = rows.find(r=>r.id===id);
+  if (!c) return;
+  const musteriler = await apiFetch('/musteriler');
+  showModal(`<div class="modal">
+    <div class="modal-header"><div class="modal-title">${c.marka||''} ${c.model||''}</div><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Müşteri</label>
+          <select id="c-musteri"><option value="">Seçin...</option>${musteriler.map(m=>`<option value="${m.id}" ${c.musteri_id===m.id?'selected':''}>${m.ad} ${m.soyad||''}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label>Durum</label>
+          <select id="c-durum"><option value="stok" ${c.durum==='stok'?'selected':''}>Stok</option><option value="serviste" ${c.durum==='serviste'?'selected':''}>Serviste</option><option value="satildi" ${c.durum==='satildi'?'selected':''}>Satıldı</option></select>
+        </div>
+        <div class="form-group"><label>Marka</label><input id="c-marka" value="${c.marka||''}"></div>
+        <div class="form-group"><label>Model</label><input id="c-model" value="${c.model||''}"></div>
+        <div class="form-group"><label>IMEI</label><input id="c-imei" value="${c.imei||''}"></div>
+        <div class="form-group"><label>Seri No</label><input id="c-seri" value="${c.seri_no||''}"></div>
+        <div class="form-group"><label>Renk</label><input id="c-renk" value="${c.renk||''}"></div>
+        <div class="form-group"><label>Depolama</label><input id="c-depolama" value="${c.depolama||''}"></div>
+        <div class="form-group"><label>Alış (₺)</label><input id="c-alis" type="number" value="${c.satin_alma_fiyat||0}"></div>
+        <div class="form-group"><label>Satış (₺)</label><input id="c-satis" type="number" value="${c.satis_fiyat||0}"></div>
+        <div class="form-group full"><label>Notlar</label><textarea id="c-not">${c.notlar||''}</textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="silCihaz('${id}')">Sil</button>
+      <button class="btn btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" onclick="guncelleCihaz('${id}')">Güncelle</button>
+    </div>
+  </div>`);
+}
+
+async function guncelleCihaz(id) {
+  try { await apiFetch(`/cihazlar/${id}`,{method:'PUT',body:JSON.stringify(cihazBody())}); toast('Güncellendi'); closeModal(); loadCihazlar(); }
+  catch(e) { toast(e.message,'error'); }
+}
+async function silCihaz(id) {
+  if(!confirm('Silinsin mi?')) return;
+  await apiFetch(`/cihazlar/${id}`,{method:'DELETE'}); toast('Silindi'); closeModal(); loadCihazlar();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SATIŞLAR
+// ═══════════════════════════════════════════════════════════════════════════════
+pages.satislar = async function pageSatislar() {
+  document.getElementById('topbar-title').textContent = 'Satışlar';
+  document.getElementById('topbar-actions').innerHTML = `<button class="btn btn-primary" onclick="yeniSatisModal()">+ Satış Ekle</button>`;
+  const rows = await apiFetch('/satislar');
+  document.getElementById('content').innerHTML = `
+    <div class="card"><div class="table-wrap"><table>
+      <tr><th>Tarih</th><th>Cihaz</th><th>Alış</th><th>Satış</th><th>Kâr</th><th>Ödeme</th><th>Müşteri</th></tr>
+      ${rows.length ? rows.map(s => `<tr>
+        <td style="font-size:12px;color:var(--text3)">${tarih(s.created_at)}</td>
+        <td><strong>${s.marka||''}</strong> ${s.model||''}</td>
+        <td style="color:var(--text3)">${s.satin_alma_fiyat?fiyat(s.satin_alma_fiyat):'—'}</td>
+        <td>${fiyat(s.satis_fiyat)}</td>
+        <td style="color:${(s.satis_fiyat-(s.satin_alma_fiyat||0))>=0?'var(--green)':'var(--red)'}">${fiyat(s.satis_fiyat-(s.satin_alma_fiyat||0))}</td>
+        <td><span class="badge badge-gray">${s.odeme_tipi}</span></td>
+        <td>${s.musteri_adi||'—'}</td>
+      </tr>`).join('') : '<tr><td colspan="7" class="empty"><div class="empty-icon">💰</div>Satış yok</td></tr>'}
+    </table></div></div>`;
+};
+
+async function yeniSatisModal() {
+  const [cihazlar, musteriler] = await Promise.all([apiFetch('/cihazlar?durum=stok'), apiFetch('/musteriler')]);
+  showModal(`<div class="modal">
+    <div class="modal-header"><div class="modal-title">Satış Ekle</div><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Cihaz (Stok)</label>
+          <select id="sat-cihaz"><option value="">Seçin...</option>${cihazlar.map(c=>`<option value="${c.id}">${c.marka||''} ${c.model||''} - ${c.imei||c.seri_no||''}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label>Müşteri</label>
+          <select id="sat-musteri"><option value="">Seçin...</option>${musteriler.map(m=>`<option value="${m.id}">${m.ad} ${m.soyad||''}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label>Satış Fiyatı (₺)</label><input id="sat-fiyat" type="number" placeholder="0"></div>
+        <div class="form-group"><label>Ödeme Tipi</label>
+          <select id="sat-odeme"><option value="nakit">Nakit</option><option value="kart">Kart</option><option value="havale">Havale</option></select>
+        </div>
+        <div class="form-group full"><label>Notlar</label><textarea id="sat-not" style="min-height:60px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">İptal</button>
+      <button class="btn btn-primary" onclick="kaydetSatis()">Kaydet</button>
+    </div>
+  </div>`);
+}
+
+async function kaydetSatis() {
+  const body = { cihaz_id:document.getElementById('sat-cihaz').value, musteri_id:document.getElementById('sat-musteri').value, satis_fiyat:document.getElementById('sat-fiyat').value, odeme_tipi:document.getElementById('sat-odeme').value, notlar:document.getElementById('sat-not').value };
+  if (!body.cihaz_id) return toast('Cihaz seçin', 'error');
+  try { await apiFetch('/satislar',{method:'POST',body:JSON.stringify(body)}); toast('Satış kaydedildi'); closeModal(); pages.satislar(); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// IMEI
+// ═══════════════════════════════════════════════════════════════════════════════
+pages.imei = async function pageImei() {
+  document.getElementById('topbar-title').textContent = 'IMEI Sorgula';
+  document.getElementById('topbar-actions').innerHTML = '';
+  document.getElementById('content').innerHTML = `
+    <div style="max-width:500px;margin:0 auto">
+      <div class="card" style="padding:20px">
+        <div class="form-group" style="margin-bottom:12px">
+          <label>IMEI Numarası (15 hane)</label>
+          <input id="imei-input" placeholder="353XXXXXXXXXXXX" maxlength="15" oninput="this.value=this.value.replace(/\D/g,'')">
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="imeiSorgula()">Sorgula</button>
+      </div>
+      <div id="imei-sonuc"></div>
+    </div>
+    <div class="card" style="margin-top:24px">
+      <div class="card-header"><div class="card-title">Sorgu Geçmişi</div></div>
+      <div class="table-wrap" id="imei-gecmis"></div>
+    </div>`;
+  loadImeiGecmis();
+};
+
+async function imeiSorgula() {
+  const imei = document.getElementById('imei-input').value.trim();
+  if (imei.length !== 15) return toast('IMEI 15 haneli olmalı', 'error');
+  const el = document.getElementById('imei-sonuc');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const d = await apiFetch('/imei/sorgu', { method:'POST', body:JSON.stringify({imei}) });
+    const renkMap = { SAFE:'var(--green)', RISKY:'var(--amber)', UNKNOWN:'var(--text3)' };
+    const renk = renkMap[d.karar] || 'var(--text3)';
+    el.innerHTML = `<div class="card" style="margin-top:16px;padding:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-family:monospace;font-size:18px;font-weight:700">${d.imei}</div>
+        <span class="badge" style="background:${renk}20;color:${renk};font-size:14px;padding:6px 16px">${d.karar}</span>
+      </div>
+      ${d.ozet ? `
+        <div class="form-grid">
+          <div class="form-group"><label>Kayıt Ülkesi</label><div style="font-size:14px;font-weight:600">${d.ozet.kayit_ulkesi||'—'}</div></div>
+          <div class="form-group"><label>TAC Kodu</label><div style="font-size:14px;font-weight:600;font-family:monospace">${d.ozet.tac||'—'}</div></div>
+          <div class="form-group"><label>Luhn Geçerli</label><div style="font-size:14px;font-weight:600;color:${d.ozet.luhn_gecerli?'var(--green)':'var(--red)'}">${d.ozet.luhn_gecerli?'✓ Geçerli':'✗ Geçersiz'}</div></div>
+        </div>` : ''}
+    </div>`;
+    loadImeiGecmis();
+  } catch(e) { el.innerHTML = `<div class="card" style="margin-top:16px;padding:20px;color:var(--red)">⚠️ ${e.message}</div>`; }
+}
+
+async function loadImeiGecmis() {
+  const rows = await apiFetch('/imei/gecmis');
+  const wrap = document.getElementById('imei-gecmis');
+  if (!wrap) return;
+  const renkMap = { SAFE:'badge-green', RISKY:'badge-amber', UNKNOWN:'badge-gray' };
+  wrap.innerHTML = `<table>
+    <tr><th>IMEI/Serial</th><th>Tip</th><th>Sonuç</th><th>Tarih</th></tr>
+    ${rows.length ? rows.map(r=>`<tr>
+      <td style="font-family:monospace;font-size:13px">${r.sorgu}</td>
+      <td><span class="badge badge-gray">${r.tip}</span></td>
+      <td><span class="badge ${renkMap[r.sonuc]||'badge-gray'}">${r.sonuc}</span></td>
+      <td style="font-size:12px;color:var(--text3)">${tarih(r.created_at)}</td>
+    </tr>`).join('') : '<tr><td colspan="4" class="empty">Sorgu geçmişi yok</td></tr>'}
+  </table>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MÜŞTERİ TAKİP
+// ═══════════════════════════════════════════════════════════════════════════════
+pages.takip = async function pageTakip() {
+  document.getElementById('topbar-title').textContent = 'Müşteri Takip';
+  document.getElementById('topbar-actions').innerHTML = '';
+  document.getElementById('content').innerHTML = `
+    <div style="max-width:500px;margin:0 auto">
+      <div class="card" style="padding:20px">
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Müşteri Telefon Numarası</label>
+          <input id="takip-tel" type="tel" placeholder="05XX XXX XX XX" onkeydown="if(event.key==='Enter')musteriSorgula()">
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="musteriSorgula()">Sorgula</button>
+      </div>
+      <div id="takip-sonuc"></div>
+    </div>`;
+};
+
+async function musteriSorgula() {
+  const tel = document.getElementById('takip-tel').value.trim();
+  if (!tel) return;
+  const el = document.getElementById('takip-sonuc');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const d = await apiFetch(`/takip?telefon=${encodeURIComponent(tel)}`);
+    el.innerHTML = `
+      <div class="card" style="margin-top:16px;padding:16px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:44px;height:44px;background:rgba(79,124,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px">👤</div>
+          <div><div style="font-weight:700;font-size:15px">${d.musteri.ad} ${d.musteri.soyad||''}</div><div style="color:var(--text3);font-size:13px">${d.musteri.telefon}</div></div>
+        </div>
+        ${d.servisler.length ? d.servisler.map(s => `
+          <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid ${s.durum==='tamamlandi'?'var(--green)':s.durum==='iptal'?'var(--red)':'var(--accent)'}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+              <div style="font-weight:700">${tipIcon[s.cihaz_tipi||'telefon']||'📱'} ${s.marka||''} ${s.model||''}</div>
+              ${durumBadge[s.durum]||s.durum}
+            </div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:4px">🔧 ${s.ariza_tanimi}</div>
+            ${s.teknisyen?`<div style="font-size:12px;color:var(--text3)">👤 ${s.teknisyen}</div>`:''}
+            <div style="font-size:12px;color:var(--text3)">📅 ${tarih(s.created_at)}</div>
+            ${s.durum==='tamamlandi'&&s.toplam_ucret?`<div style="margin-top:8px;font-weight:700;color:var(--green)">💰 ${fiyat(s.toplam_ucret)}</div>`:''}
+            ${s.durum==='iptal'?`<div style="margin-top:8px;font-weight:700;color:${s.iade_tutari>0?'var(--amber)':'var(--text3)'}">↩ ${s.iade_tutari>0?'İade: '+fiyat(s.iade_tutari):'Ücret alınmadı'}</div>`:''}
+          </div>`).join('') : '<div class="empty">Servis kaydı bulunamadı</div>'}`;
+  } catch(e) { el.innerHTML = `<div class="card" style="margin-top:16px;padding:20px;color:var(--red)">⚠️ ${e.message}</div>`; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════════════════
+(async function boot() {
+  if (SESSION_TOKEN) {
+    try {
+      const r = await fetch(API + '/auth/check', { headers:{'x-session-token':SESSION_TOKEN} });
+      if (r.ok) {
+        showApp();
+        await loadLocale();
+        await loadAyarlarCache();
+        pages.dashboard();
+        checkWAStatus();
+        return;
+      }
+    } catch(e) {}
+  }
+  showLogin();
+})();
+</script>
+</body>
+</html>

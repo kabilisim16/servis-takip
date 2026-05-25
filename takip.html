@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Servis Takip</title>
+<meta name="theme-color" content="#0f1117">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f1117;--bg2:#161b26;--bg3:#1e2535;--border:#2a3347;--text:#e8eaf0;--text2:#c0c8d8;--text3:#6b7280;--accent:#4f7cff;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--radius:12px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0}
+
+.hero{background:linear-gradient(135deg,#1a1f35 0%,#161b26 100%);border-bottom:1px solid var(--border);padding:24px 20px 32px}
+.hero-inner{max-width:520px;margin:0 auto}
+.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.logo-icon{width:40px;height:40px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.firma-adi{font-size:17px;font-weight:700}
+.firma-alt{font-size:12px;color:var(--text3)}
+
+.search-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.search-title{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text2)}
+.input-row{display:flex;gap:8px}
+input[type=tel]{flex:1;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:15px;outline:none;transition:border-color .15s}
+input[type=tel]:focus{border-color:var(--accent)}
+input::placeholder{color:#3a4570}
+.btn-sorgu{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.btn-sorgu:hover{background:#3d62cc}
+.btn-sorgu:disabled{opacity:.5;cursor:default}
+
+.wrap{max-width:520px;margin:0 auto;padding:20px}
+
+.musteri-kart{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.avatar{width:48px;height:48px;background:rgba(79,124,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.musteri-ad{font-size:16px;font-weight:700}
+.musteri-tel{font-size:13px;color:var(--text3);margin-top:2px}
+
+.servis-kart{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;position:relative;overflow:hidden}
+.servis-kart::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.servis-kart.beklemede::before{background:#64748b}
+.servis-kart.incelemede::before{background:var(--accent)}
+.servis-kart.tamir_asamasinda::before{background:var(--amber)}
+.servis-kart.tamamlandi::before{background:var(--green)}
+.servis-kart.iptal::before{background:var(--red)}
+
+.servis-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.servis-cihaz{font-size:16px;font-weight:700}
+.servis-tarih{font-size:12px;color:var(--text3);margin-top:3px}
+
+.badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.b-gray{background:rgba(100,116,139,.15);color:#94a3b8}
+.b-blue{background:rgba(79,124,255,.15);color:var(--accent)}
+.b-amber{background:rgba(245,158,11,.15);color:var(--amber)}
+.b-green{background:rgba(34,197,94,.15);color:var(--green)}
+.b-red{background:rgba(239,68,68,.15);color:var(--red)}
+
+.servis-detail{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.detail-row{display:flex;gap:8px;font-size:13px}
+.detail-label{color:var(--text3);flex-shrink:0;min-width:90px}
+.detail-val{color:var(--text2);flex:1}
+
+.ucret-box{background:var(--bg3);border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.ucret-label{font-size:12px;color:var(--text3)}
+.ucret-val{font-size:18px;font-weight:700}
+
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn-share{display:flex;align-items:center;gap:6px;background:rgba(79,124,255,.1);color:var(--accent);border:1px solid rgba(79,124,255,.3);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-share:hover{background:rgba(79,124,255,.2)}
+.btn-pdf{display:flex;align-items:center;gap:6px;background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-pdf:hover{background:var(--bg3)}
+
+.gmb-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:24px;text-align:center}
+.gmb-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.gmb-sub{font-size:12px;color:var(--text3);margin-bottom:14px}
+.btn-gmb{display:inline-flex;align-items:center;gap:8px;background:#4285f4;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s}
+.btn-gmb:hover{background:#3367d6}
+.gmb-stars{font-size:20px;margin-bottom:8px}
+
+.spinner-wrap{text-align:center;padding:40px;color:var(--text3)}
+.spinner{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hata-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius);padding:20px;text-align:center;color:var(--red);margin-top:16px}
+.empty-box{text-align:center;padding:32px;color:var(--text3)}
+.empty-box div:first-child{font-size:40px;margin-bottom:8px}
+
+.footer{text-align:center;padding:24px 20px 40px;font-size:12px;color:var(--text3)}
+
+@media(max-width:480px){
+  .hero{padding:16px 16px 24px}
+  .wrap{padding:12px}
+  .input-row{flex-direction:column}
+  .servis-head{flex-direction:column;gap:8px}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="logo-row">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="firma-adi" id="firma-adi">Teknik Servis</div>
+        <div class="firma-alt" id="firma-alt">Servis Takip Sistemi</div>
+      </div>
+    </div>
+    <div class="search-card">
+      <div class="search-title">📱 Servis durumunuzu öğrenmek için telefon numaranızı girin</div>
+      <div class="input-row">
+        <input type="tel" id="tel" placeholder="05XX XXX XX XX" onkeydown="if(event.key==='Enter')sorgula()">
+        <button class="btn-sorgu" onclick="sorgula()" id="sorgu-btn">Sorgula</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="sonuc"></div>
+</div>
+
+<div class="footer" id="footer-firma">kabilisim.com.tr &nbsp;·&nbsp; Teknik Servis Yönetimi</div>
+
+<script>
+const API = '/servis-panel/api';
+let gmbLink = '';
+let firmaAdi = 'Teknik Servis';
+let firmaTelefon = '';
+
+const durumBadge = {
+  beklemede:        '<span class="badge b-gray">⏳ Beklemede</span>',
+  incelemede:       '<span class="badge b-blue">🔍 İncelemede</span>',
+  tamir_asamasinda: '<span class="badge b-amber">🔧 Tamir Aşamasında</span>',
+  tamamlandi:       '<span class="badge b-green">✅ Tamamlandı</span>',
+  iptal:            '<span class="badge b-red">❌ İptal</span>',
+};
+const tipIcon = {telefon:'📱',tablet:'📟',bilgisayar:'💻',diger:'📦'};
+
+function fiyat(n){ return Number(n||0).toLocaleString('tr-TR') + ' ₺'; }
+function fmt(s){ if(!s) return '—'; return new Date(s).toLocaleDateString('tr-TR'); }
+
+async function sorgula() {
+  const tel = document.getElementById('tel').value.trim();
+  if (!tel) return;
+  const el  = document.getElementById('sonuc');
+  const btn = document.getElementById('sorgu-btn');
+  btn.disabled = true;
+  el.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div><div style="margin-top:10px;font-size:13px">Sorgulanıyor...</div></div>';
+
+  try {
+    const r = await fetch(API + '/takip?telefon=' + encodeURIComponent(tel));
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.hata || 'Kayıt bulunamadı');
+
+    // Firma bilgilerini güncelle
+    if (d.firma_adi) { firmaAdi = d.firma_adi; document.getElementById('firma-adi').textContent = firmaAdi; }
+    if (d.firma_telefon) { firmaTelefon = d.firma_telefon; document.getElementById('firma-alt').textContent = firmaTelefon; }
+    if (d.gmb_link) gmbLink = d.gmb_link;
+
+    let html = `<div class="musteri-kart">
+      <div class="avatar">👤</div>
+      <div>
+        <div class="musteri-ad">${d.musteri.ad} ${d.musteri.soyad||''}</div>
+        <div class="musteri-tel">${d.musteri.telefon}</div>
+      </div>
+    </div>`;
+
+    if (!d.servisler.length) {
+      html += '<div class="empty-box"><div>📭</div><div>Servis kaydı bulunamadı</div></div>';
+    } else {
+      d.servisler.forEach(s => {
+        const tamamlandi = s.durum === 'tamamlandi';
+        const iptal      = s.durum === 'iptal';
+        const shareUrl   = location.origin + location.pathname + '?telefon=' + encodeURIComponent(d.musteri.telefon);
+
+        html += `<div class="servis-kart ${s.durum}">
+          <div class="servis-head">
+            <div>
+              <div class="servis-cihaz">${tipIcon[s.cihaz_tipi||'telefon']||'📱'} ${s.marka||''} ${s.model||''}</div>
+              <div class="servis-tarih">Kayıt: ${fmt(s.created_at)}</div>
+            </div>
+            ${durumBadge[s.durum]||s.durum}
+          </div>
+
+          <div class="servis-detail">
+            <div class="detail-row"><span class="detail-label">🔧 Arıza</span><span class="detail-val">${s.ariza_tanimi}</span></div>
+            ${s.teknisyen?`<div class="detail-row"><span class="detail-label">👤 Teknisyen</span><span class="detail-val">${s.teknisyen}</span></div>`:''}
+            ${s.teslim_tarihi?`<div class="detail-row"><span class="detail-label">📅 Tahmini Teslim</span><span class="detail-val">${s.teslim_tarihi}</span></div>`:''}
+            ${s.notlar?`<div class="detail-row"><span class="detail-label">📝 Notlar</span><span class="detail-val">${s.notlar}</span></div>`:''}
+            ${s.updated_at&&s.updated_at!==s.created_at?`<div class="detail-row"><span class="detail-label">🔄 Güncelleme</span><span class="detail-val">${fmt(s.updated_at)}</span></div>`:''}
+          </div>
+
+          ${tamamlandi&&s.toplam_ucret?`<div class="ucret-box">
+            <div><div class="ucret-label">Toplam Ücret</div></div>
+            <div class="ucret-val" style="color:var(--green)">${fiyat(s.toplam_ucret)}</div>
+          </div>`:''}
+
+          ${iptal?`<div class="ucret-box">
+            <div><div class="ucret-label">İptal — Ödeme Durumu</div></div>
+            <div class="ucret-val" style="color:${s.iade_tutari>0?'var(--amber)':'var(--text3)'}">${s.iade_tutari>0?'İade: '+fiyat(s.iade_tutari):'0 ₺ — Ücret alınmadı'}</div>
+          </div>`:''}
+
+          <div class="actions">
+            <button class="btn-share" onclick="paylas('${shareUrl}','${(s.marka||'')+' '+(s.model||'')} servis takibi')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+              Paylaş
+            </button>
+            ${firmaTelefon?`<a href="tel:${firmaTelefon}" class="btn-pdf">📞 Ara</a>`:''}
+          </div>
+        </div>`;
+      });
+    }
+
+    // GMB linki
+    if (gmbLink) {
+      html += `<div class="gmb-box">
+        <div class="gmb-stars">⭐⭐⭐⭐⭐</div>
+        <div class="gmb-title">Hizmetimizden memnun kaldınız mı?</div>
+        <div class="gmb-sub">Google'da yorum yaparak bize destek olun</div>
+        <a href="${gmbLink}" target="_blank" class="btn-gmb">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Google'da Değerlendir
+        </a>
+      </div>`;
+    }
+
+    document.getElementById('sonuc').innerHTML = html;
+  } catch(e) {
+    document.getElementById('sonuc').innerHTML = `<div class="hata-box">⚠️ ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function paylas(url, baslik) {
+  if (navigator.share) {
+    navigator.share({ title: baslik, text: firmaAdi + ' — Servis Takip', url })
+      .catch(() => kopyala(url));
+  } else {
+    kopyala(url);
+  }
+}
+
+function kopyala(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = event.target.closest('.btn-share');
+    if (btn) { const orig = btn.innerHTML; btn.textContent = '✓ Kopyalandı!'; setTimeout(() => btn.innerHTML = orig, 2000); }
+  });
+}
+
+// URL'den otomatik sorgula
+(function() {
+  const p = new URLSearchParams(location.search);
+  const tel = p.get('telefon');
+  if (tel) { document.getElementById('tel').value = tel; sorgula(); }
+})();
+</script>
+</body>
+</html>
