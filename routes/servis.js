@@ -165,22 +165,8 @@ router.post('/wa/:id', async (req, res) => {
   // Geçici olarak bildirim kanalını WA'ya zorla
   const orijinalKanal = getAyar('bildirim_kanal');
   try {
-    // Manuel gönderimde kanal kontrolünü atla, direkt WA gönder
-    const { sendSafe, msgAlindi, msgTamamlandi } = require('../services/whatsapp');
-    const TAKIP_URL = process.env.TAKIP_URL || 'https://kabilisim.com.tr/servis-takip';
-    let mesaj;
-    if (tip === 'alindi') {
-      mesaj = msgAlindi(kayit.marka, kayit.model, kayit.cihaz_tipi, musteri.telefon);
-    } else {
-      mesaj = msgTamamlandi(kayit.marka, kayit.model, kayit.cihaz_tipi,
-        kayit.ariza_tanimi, kayit.notlar, kayit.toplam_ucret, kayit.iade_tutari);
-    }
-    const sent = await sendSafe(musteri.telefon, mesaj, `manuel-${tip}`);
-    if (sent) {
-      const field = tip === 'alindi' ? 'wa_alindi_at' : 'wa_tamamlandi_at';
-      db.prepare(`UPDATE servis_kayitlari SET ${field}=CURRENT_TIMESTAMP WHERE id=?`).run(req.params.id);
-    }
-    res.json({ ok: sent, mesaj: sent ? 'Gönderildi' : 'Gönderilemedi' });
+    await bildirimGonder(tip, kayit, musteri);
+    res.json({ ok: true });
   } catch(e) {
     res.status(500).json({ hata: e.message });
   }

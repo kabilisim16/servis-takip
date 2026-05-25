@@ -39,9 +39,6 @@ authRouter.get('/check', (req, res) => {
 });
 
 function requireAuth(req, res, next) {
-  if (!req.headers['x-session-token'] && req.query.token) {
-    req.headers['x-session-token'] = req.query.token;
-  }
   const t = req.headers['x-session-token'];
   const s = sessions.get(t);
   if (!s || Date.now() > s.expiresAt) { sessions.delete(t); return res.status(401).json({ hata: 'Oturum gerekli' }); }
